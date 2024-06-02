@@ -1,0 +1,25 @@
+name: deploy-app
+on:
+  push:
+    branches:
+      - main
+jobs:
+  plan:
+    name: Terraform plan
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkouts@v3
+
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+        with:
+          version: '>= 363.0.0'
+
+      - name: 'Use gcloud CLI'
+        run: 'gcloud auth list'
