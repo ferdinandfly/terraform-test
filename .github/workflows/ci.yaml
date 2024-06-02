@@ -16,6 +16,7 @@ jobs:
         with:
           credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
           create_credentials_file: true
+
       - name: 'Set up Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v2'
         with:
@@ -25,8 +26,9 @@ jobs:
         uses: 'hashicorp/setup-terraform@v3'
         with:
           terraform_version: "1.1.7"
+
       - name: 'Terraform'
+        working-directory: cloud/terraform
         run: |
-          cd cloud/terraform
           terraform init
           terraform apply -auto-approve
