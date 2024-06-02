@@ -1,0 +1,70 @@
+stages:
+  - plan
+  - deploy
+  - build-app
+  - deploy-app
+# add installation terraform
+variables:
+  GOOGLE_APPLICATION_CREDENTIALS: /tmp/serviceaccount.json
+  DOCKER_IMAGE_REGISTRY_PATH: europe-west1-docker.pkg.dev/test-terraform-417513/app/node:${CI_COMMIT_SHA}
+
+before_script:
+  - echo $SERVICE_ACCOUNT | base64 -d > ${GOOGLE_APPLICATION_CREDENTIALS}
+  - gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
+
+plan:
+  stage: plan
+  image: cedricguadalupe/terraform-gcloud:latest
+  script:
+    - cd cloud/terraform
+    - terraform init
+    - terraform plan
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - './**/*.tf'
+
+deploy:
+  stage: deploy
+  image: cedricguadalupe/terraform-gcloud:latest
+  script:
+    - cd cloud/terraform
+    - terraform init
+    - terraform apply -auto-approve
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - './**/*.tf'
+
+# build the image
+build-app:
+  stage: build-app
+  image: cedricguadalupe/terraform-gcloud:latest
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+  script:
+    - gcloud builds submit --project=test-terraform-417513 --tag $DOCKER_IMAGE_REGISTRY_PATH .
+
+.deploy: &deploy
+  stage: deploy-app
+  image: cedricguadalupe/terraform-gcloud:latest
+  script:
+    - gcloud components update
+    - gcloud components install kubectl
+    - gcloud container clusters get-credentials my-gke-cluster --region europe-west1 --project test-terraform-417513
+    #    - sed -i "s/__version/${CI_COMMIT_SHA}/g" ./cloud/k8s/deployment.yml
+    #    - kubectl apply -f ./cloud/k8s/deployment.yml
+    #    - kubectl apply -f ./cloud/k8s/service.yml
+    #    - kubectl get services
+    - apk add --no-cache helm
+    - helm repo add nginx-stable https://helm.nginx.com/stable
+    - helm repo update
+    - helm upgrade --install nginx-ingress nginx-stable/nginx-ingress
+    - helm upgrade -f ./cloud/app/values-${ENV}.yml --install --set=image.tag=$CI_COMMIT_SHA app ./cloud/app
+
+deploy-prod:
+  <<: *deploy
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      variables:
+        ENV: prod

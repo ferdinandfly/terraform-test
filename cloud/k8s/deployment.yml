@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+  labels:
+    app: app
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: app
+  template:
+    spec:
+      containers:
+        - name: hello
+          image: europe-west1-docker.pkg.dev/test-terraform-417513/app/node:__version
+          ports:
+            - containerPort: 3000
+    metadata:
+      labels:
+        app: app
+

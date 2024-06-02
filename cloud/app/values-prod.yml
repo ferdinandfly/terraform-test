@@ -1,0 +1,15 @@
+image:
+  repository: europe-west1-docker.pkg.dev/test-terraform-417513/app/node
+service:
+  port: 3000
+
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: app-ip
+    kubernetes.io/ingress.class: "nginx"
+  hosts:
+    - host: app.35.187.33.65.nip.io
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
