@@ -22,10 +22,14 @@ jobs:
           version: '>= 363.0.0'
 
       - name: 'Use gcloud CLI'
-        run: 'gcloud auth list'
+        run: 'gcloud auth application-default login'
 
+      - name: 'setup terraform'
+        uses: 'hashicorp/setup-terraform@v3'
+        with:
+          terraform_version: "1.1.7"
       - name: 'Terraform'
         run: |
-          - cd cloud/terraform
-          - terraform init
-          - terraform apply -auto-approve
+          cd cloud/terraform
+          terraform init
+          terraform apply -auto-approve
