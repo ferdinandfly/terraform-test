@@ -23,3 +23,9 @@ jobs:
 
       - name: 'Use gcloud CLI'
         run: 'gcloud auth list'
+
+      - name: 'Terraform'
+        run: |
+          - cd cloud/terraform
+          - terraform init
+          - terraform apply -auto-approve
