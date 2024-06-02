@@ -22,7 +22,7 @@ jobs:
           version: '>= 363.0.0'
 
       - name: 'Use gcloud CLI'
-        run: 'gcloud auth application-default login'
+        run: 'gcloud auth application-default login --quiet'
 
       - name: 'setup terraform'
         uses: 'hashicorp/setup-terraform@v3'
